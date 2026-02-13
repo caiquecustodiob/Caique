@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Play, Pause, RotateCcw, Music, Loader2, Briefcase } from 'lucide-react';
+import { Play, Pause, RotateCcw, Music, Loader2, Briefcase, ChevronDown } from 'lucide-react';
 import LyricDisplay from './components/LyricDisplay';
 import Visualizer from './components/Visualizer';
 import IntroVisualizer from './components/IntroVisualizer';
@@ -47,18 +47,17 @@ const App: React.FC = () => {
               setState(prev => ({ ...prev, duration: event.target.getDuration() }));
             },
             onStateChange: (event: any) => {
+              const playerState = event.data;
               setState(prev => ({
                 ...prev,
-                isPlaying: event.data === (window as any).YT.PlayerState.PLAYING
+                isPlaying: playerState === (window as any).YT.PlayerState.PLAYING
               }));
             },
-            onError: (e: any) => {
-              console.error("YouTube Player Error:", e.data);
-            }
+            onError: (e: any) => console.error("YouTube Error:", e.data)
           }
         });
       } catch (err) {
-        console.error("Erro YT Player:", err);
+        console.error("YT Player Init Err:", err);
       }
     };
 
@@ -108,10 +107,10 @@ const App: React.FC = () => {
     setState(prev => ({ ...prev, currentTime: time }));
   };
 
-  const isIntroActive = state.currentTime < 16;
+  const isIntroActive = state.currentTime < 14.5;
 
   return (
-    <div className={`relative h-screen w-full flex flex-col items-center justify-between overflow-hidden bg-[#050505] text-white font-inter transition-all duration-700 ${isPortfolioOpen ? 'scale-95 opacity-50 blur-2xl' : 'scale-100 opacity-100 blur-0'}`}>
+    <div className={`relative h-screen w-full flex flex-col items-center justify-between overflow-hidden bg-[#050505] text-white font-inter transition-all duration-700 ${isPortfolioOpen ? 'scale-90 opacity-40 blur-[50px]' : 'scale-100 opacity-100'}`}>
       <Visualizer isPlaying={state.isPlaying} />
       
       <IntroVisualizer currentTime={state.currentTime} isPlaying={state.isPlaying} />
@@ -121,51 +120,77 @@ const App: React.FC = () => {
       </div>
 
       {showStartOverlay && (
-        <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-black/95 backdrop-blur-2xl transition-all duration-1000">
-          <div className="text-center space-y-10 p-12 border border-white/5 rounded-[40px] bg-white/[0.02] shadow-2xl">
-            <div className="w-28 h-28 bg-yellow-400 rounded-full mx-auto flex items-center justify-center animate-pulse shadow-[0_0_80px_rgba(250,204,21,0.2)]">
-              <Music className="w-12 h-12 text-black" />
+        <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-black transition-all duration-1000">
+          <div className="absolute inset-0 overflow-hidden opacity-20">
+             <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_center,rgba(250,204,21,0.1)_0%,transparent_70%)] animate-pulse" />
+          </div>
+          
+          <div className="text-center space-y-12 p-16 relative">
+            <div className="relative group cursor-pointer" onClick={handleStart}>
+              <div className="absolute -inset-8 bg-yellow-400/20 rounded-full blur-3xl animate-pulse group-hover:bg-yellow-400/40 transition-all" />
+              <div className="w-32 h-32 bg-yellow-400 rounded-[35%] mx-auto flex items-center justify-center rotate-12 group-hover:rotate-[30deg] transition-transform duration-500 shadow-2xl">
+                <Music className="w-16 h-16 text-black" />
+              </div>
             </div>
-            <div className="space-y-3">
-              <h1 className="text-6xl font-oswald font-black uppercase tracking-tighter italic">C&C CRAFT</h1>
-              <p className="text-yellow-400 font-bold tracking-[0.4em] uppercase text-xs opacity-70">Experiência Digital x Lyrics</p>
+
+            <div className="space-y-4">
+              <h1 className="text-7xl md:text-9xl font-oswald font-black uppercase tracking-tighter italic animate-in slide-in-from-bottom duration-700">
+                C&C <span className="text-yellow-400">CRAFT</span>
+              </h1>
+              <p className="text-white/40 font-bold tracking-[0.6em] uppercase text-xs animate-in fade-in duration-1000 delay-300">
+                Digital Engineering x Street Art
+              </p>
             </div>
+
             <button 
               onClick={handleStart}
               disabled={!isReady}
-              className="group px-14 py-5 bg-white text-black font-black uppercase tracking-widest rounded-full hover:bg-yellow-400 hover:scale-110 active:scale-95 transition-all disabled:opacity-30 flex items-center gap-4 mx-auto"
+              className="group relative px-20 py-6 bg-white text-black font-black uppercase tracking-[0.3em] rounded-full hover:bg-yellow-400 hover:scale-110 active:scale-95 transition-all disabled:opacity-20 flex items-center gap-6 mx-auto shadow-[0_20px_60px_rgba(255,255,255,0.1)] overflow-hidden"
             >
-              {isReady ? (
-                <> <Play size={24} fill="black" /> Iniciar Experiência </>
-              ) : (
-                <> <Loader2 className="animate-spin" /> Conectando API </>
-              )}
+              <div className="absolute inset-0 bg-black/5 -translate-x-full group-hover:translate-x-0 transition-transform duration-500" />
+              <span className="relative z-10 flex items-center gap-4">
+                {isReady ? (
+                  <> <Play size={28} fill="black" /> DROP THE BEAT </>
+                ) : (
+                  <> <Loader2 className="animate-spin" /> SYNCING... </>
+                )}
+              </span>
             </button>
+          </div>
+          
+          <div className="absolute bottom-12 flex flex-col items-center gap-2 opacity-30 animate-bounce">
+            <span className="text-[10px] font-black tracking-widest uppercase">Scroll Down to start</span>
+            <ChevronDown size={20} />
           </div>
         </div>
       )}
 
-      {/* Botão de Atalho para o Portfólio (Aparece após a Intro ou como opção) */}
       {!isIntroActive && !showStartOverlay && (
         <button 
           onClick={() => setIsPortfolioOpen(true)}
-          className="fixed bottom-32 right-8 z-[60] flex items-center gap-3 bg-white text-black px-6 py-4 rounded-full font-black uppercase tracking-widest shadow-2xl hover:bg-yellow-400 hover:scale-110 transition-all animate-in fade-in slide-in-from-right duration-500"
+          className="fixed bottom-36 right-10 z-[60] group flex items-center gap-4 bg-white text-black pl-8 pr-6 py-5 rounded-full font-black uppercase tracking-[0.2em] shadow-[0_25px_50px_-12px_rgba(0,0,0,0.5)] hover:bg-yellow-400 hover:scale-110 active:scale-95 transition-all animate-in slide-in-from-right duration-500"
         >
-          <Briefcase size={20} /> Explorar C&C Craft
+          <Briefcase size={22} /> 
+          <span>Explore Craft</span>
+          <div className="w-8 h-8 rounded-full bg-black/10 flex items-center justify-center group-hover:bg-black group-hover:text-white transition-colors">
+            <ChevronDown size={16} className="-rotate-90" />
+          </div>
         </button>
       )}
 
-      <header className="z-40 w-full p-8 flex justify-between items-center">
-        <div className="flex items-center gap-5">
-          <div className={`w-12 h-12 flex items-center justify-center rounded-2xl transition-all duration-700 ${state.isPlaying ? 'bg-yellow-400 rotate-[15deg]' : 'bg-white/5'}`}>
-            <Music className={`w-6 h-6 ${state.isPlaying ? 'text-black' : 'text-white'}`} />
+      <header className="z-40 w-full p-10 flex justify-between items-center">
+        <div className="flex items-center gap-6">
+          <div className={`w-14 h-14 flex items-center justify-center rounded-2xl transition-all duration-1000 ${state.isPlaying ? 'bg-yellow-400 rotate-[15deg] shadow-2xl' : 'bg-white/5'}`}>
+            <Music className={`w-7 h-7 ${state.isPlaying ? 'text-black' : 'text-white'}`} />
           </div>
-          <div>
-            <h2 className="font-oswald text-xl uppercase font-bold tracking-tight leading-none mb-1">C&C Craft Engine</h2>
+          <div className="space-y-1">
+            <h2 className="font-oswald text-2xl uppercase font-bold tracking-tight leading-none italic">
+              C&C <span className="text-yellow-400">Engine</span>
+            </h2>
             <div className="flex items-center gap-2">
-              <div className={`w-2 h-2 rounded-full ${state.isPlaying ? 'bg-green-500 animate-pulse' : 'bg-red-500'}`} />
-              <p className="text-[9px] text-gray-500 uppercase tracking-[0.2em] font-black">
-                {isIntroActive ? 'Intro Stage' : 'Synchronized Portfolio'}
+              <div className={`w-2 h-2 rounded-full ${state.isPlaying ? 'bg-green-500 shadow-[0_0_10px_#22c55e]' : 'bg-red-500'}`} />
+              <p className="text-[10px] text-gray-500 uppercase tracking-[0.3em] font-black">
+                {isIntroActive ? 'Cinematic Build-up' : 'Live Syncronization'}
               </p>
             </div>
           </div>
@@ -173,58 +198,63 @@ const App: React.FC = () => {
         
         <button 
           onClick={() => setIsPortfolioOpen(true)}
-          className="bg-white/5 hover:bg-white/10 px-6 py-2 rounded-full text-xs font-bold uppercase tracking-widest transition-all hidden md:block"
+          className="bg-white/5 hover:bg-white/10 hover:border-white/20 border border-white/5 px-8 py-3 rounded-full text-[10px] font-black uppercase tracking-[0.4em] transition-all hidden lg:block backdrop-blur-md"
         >
-          Ver Portfólio Completo
+          Full Portfolio View
         </button>
       </header>
 
-      <main className={`flex-grow w-full max-w-6xl mx-auto flex items-center justify-center relative transition-all duration-700 ${isIntroActive ? 'opacity-10 scale-95 blur-md' : 'opacity-100 scale-100 blur-0'}`}>
+      <main className={`flex-grow w-full max-w-7xl mx-auto flex items-center justify-center relative transition-all duration-1000 ${isIntroActive ? 'opacity-0 scale-75 blur-2xl' : 'opacity-100 scale-100'}`}>
         <LyricDisplay lyrics={LYRICS} currentTime={state.currentTime} isPlaying={state.isPlaying} />
       </main>
 
-      <footer className="z-40 w-full p-10 bg-gradient-to-t from-black via-black/90 to-transparent">
-        <div className="max-w-4xl mx-auto space-y-8">
-          <div className="flex items-center gap-5">
-            <span className="text-[10px] font-mono text-white/30 tabular-nums">{formatTime(state.currentTime)}</span>
-            <div className="relative flex-grow group h-8 flex items-center">
+      <footer className="z-40 w-full p-12 bg-gradient-to-t from-black via-black/80 to-transparent">
+        <div className="max-w-5xl mx-auto space-y-10">
+          <div className="flex items-center gap-6">
+            <span className="text-[11px] font-mono text-white/20 w-16 tabular-nums">{formatTime(state.currentTime)}</span>
+            <div className="relative flex-grow group h-10 flex items-center">
               <input
                 type="range"
                 min="0"
                 max={state.duration || 0}
                 value={state.currentTime}
                 onChange={handleSeek}
-                className="w-full h-1 bg-white/10 rounded-full appearance-none cursor-pointer accent-yellow-400"
+                className="w-full h-1 bg-white/5 rounded-full appearance-none cursor-pointer accent-yellow-400 hover:h-1.5 transition-all"
               />
               <div 
-                className="absolute left-0 h-1 bg-yellow-400 rounded-full pointer-events-none transition-all duration-100" 
+                className="absolute left-0 h-1 bg-yellow-400 rounded-full pointer-events-none shadow-[0_0_20px_rgba(250,204,21,0.6)]" 
                 style={{ width: `${state.duration > 0 ? (state.currentTime / state.duration) * 100 : 0}%` }}
               />
             </div>
-            <span className="text-[10px] font-mono text-white/30 tabular-nums">{formatTime(state.duration)}</span>
+            <span className="text-[11px] font-mono text-white/20 w-16 text-right tabular-nums">{formatTime(state.duration)}</span>
           </div>
 
-          <div className="flex items-center justify-center gap-16">
-            <button onClick={() => ytPlayerRef.current?.seekTo(Math.max(0, state.currentTime - 10))} className="text-white/20 hover:text-white transition-all hover:scale-125">
-              <RotateCcw className="w-7 h-7 -scale-x-100" />
+          <div className="flex items-center justify-center gap-20">
+            <button 
+              onClick={() => ytPlayerRef.current?.seekTo(Math.max(0, state.currentTime - 10))} 
+              className="text-white/20 hover:text-white transition-all hover:scale-150 p-4"
+            >
+              <RotateCcw className="w-8 h-8 -scale-x-100" />
             </button>
             
             <button 
               onClick={togglePlay}
-              className="group relative w-24 h-24 flex items-center justify-center bg-white text-black rounded-full hover:scale-110 active:scale-90 transition-all shadow-2xl"
+              className="group relative w-28 h-28 flex items-center justify-center bg-white text-black rounded-full hover:scale-110 active:scale-90 transition-all shadow-[0_0_50px_rgba(255,255,255,0.1)]"
             >
-              <div className="absolute inset-0 rounded-full bg-white animate-ping opacity-5 group-hover:opacity-10" />
-              {state.isPlaying ? <Pause size={36} fill="black" /> : <Play size={36} className="ml-1" fill="black" />}
+              <div className="absolute inset-0 rounded-full bg-white animate-ping opacity-5" />
+              {state.isPlaying ? <Pause size={44} fill="black" /> : <Play size={44} className="ml-2" fill="black" />}
             </button>
 
-            <button onClick={() => ytPlayerRef.current?.seekTo(0)} className="text-white/20 hover:text-white transition-all hover:scale-125">
-              <RotateCcw className="w-7 h-7" />
+            <button 
+              onClick={() => ytPlayerRef.current?.seekTo(0)} 
+              className="text-white/20 hover:text-white transition-all hover:scale-150 p-4"
+            >
+              <RotateCcw className="w-8 h-8" />
             </button>
           </div>
         </div>
       </footer>
 
-      {/* Camada do Portfólio sobreposta */}
       <Portfolio isOpen={isPortfolioOpen} onClose={() => setIsPortfolioOpen(false)} />
     </div>
   );
